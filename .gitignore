@@ -1,0 +1,47 @@
+# .gitignore for HOTEL SaaS
+
+# Environment Variables (Critical for security)
+.env
+.env.*
+!.env.example
+
+# Database
+db.sqlite3
+db.sqlite3-journal
+*.sqlite3
+
+# Python Virtual Environment
+env/
+venv/
+ENV/
+env.bak/
+venv.bak/
+
+# Byte-compiled / optimized / DLL files
+__pycache__/
+*.py[cod]
+*$py.class
+
+# Static & Media files
+staticfiles/
+media/
+
+# Logs & Profiling
+*.log
+.silk/
+.coverage
+coverage.xml
+
+# Testing & Pytest
+.pytest_cache/
+.tox/
+
+# IDE & Editor files
+.idea/
+.vscode/
+*.swp
+*.swo
+
+# OS generated files
+.DS_Store
+Thumbs.db
