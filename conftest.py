@@ -45,7 +45,7 @@ def hotel_a(db):
         status="active",
         is_active=True,
     )
-    HotelSettings.objects.create(hotel=hotel)
+    HotelSettings.objects.get_or_create(hotel=hotel)
     return hotel
 
 
@@ -61,7 +61,7 @@ def hotel_b(db):
         status="active",
         is_active=True,
     )
-    HotelSettings.objects.create(hotel=hotel)
+    HotelSettings.objects.get_or_create(hotel=hotel)
     return hotel
 
 

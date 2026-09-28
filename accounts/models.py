@@ -33,14 +33,50 @@ Models:
   ... إلخ
 """
 
-from django.contrib.auth.models import AbstractUser
+from django.contrib.auth.models import AbstractUser, BaseUserManager
 from django.db import models
 from django.utils.translation import gettext_lazy as _
 from common.models.base import BaseModel, UUIDModel, TimeStampedModel
 from common.models.managers import TenantManager
 
 
+class UserManager(BaseUserManager):
+    """
+    Custom User Manager حيث البريد الإلكتروني هو المعرف الرئيسي بدلاً من اسم المستخدم.
+
+    الهيكل الوظيفي:
+      - inherits from BaseUserManager (من django.contrib.auth.base_user)
+      - create_user(): إنشاء مستخدم عادي بالبريد الإلكتروني كلمة المرور
+      - create_superuser(): إنشاء مدير فائق مع تفعيل is_staff, is_superuser, is_platform_admin
+    """
+
+    def create_user(self, email, password=None, **extra_fields):
+        """إنشاء مستخدم عادي."""
+        if not email:
+            raise ValueError(_("The Email field must be set"))
+        email = self.normalize_email(email)
+        extra_fields.setdefault("username", email.split("@")[0])
+        user = self.model(email=email, **extra_fields)
+        user.set_password(password)
+        user.save(using=self._db)
+        return user
+
+    def create_superuser(self, email, password=None, **extra_fields):
+        """إنشاء مدير فائق للأنظمة."""
+        extra_fields.setdefault("is_staff", True)
+        extra_fields.setdefault("is_superuser", True)
+        extra_fields.setdefault("is_platform_admin", True)
+
+        if extra_fields.get("is_staff") is not True:
+            raise ValueError(_("Superuser must have is_staff=True."))
+        if extra_fields.get("is_superuser") is not True:
+            raise ValueError(_("Superuser must have is_superuser=True."))
+
+        return self.create_user(email, password, **extra_fields)
+
+
 class User(AbstractUser, UUIDModel, TimeStampedModel):
+
     """
     Custom User Model يرث من AbstractUser.
 
@@ -96,6 +132,8 @@ class User(AbstractUser, UUIDModel, TimeStampedModel):
     # استخدام email كـ login field
     USERNAME_FIELD = "email"
     REQUIRED_FIELDS = ["username", "first_name", "last_name"]
+
+    objects = UserManager()
 
     class Meta(UUIDModel.Meta):
         verbose_name = _("User")
