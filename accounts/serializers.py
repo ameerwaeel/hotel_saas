@@ -415,6 +415,9 @@ class HotelMembershipSerializer(serializers.ModelSerializer):
     }
     """
 
+    hotel_id = serializers.UUIDField(source="hotel.id", read_only=True)
+    hotel_name = serializers.CharField(source="hotel.name", read_only=True)
+    hotel_subdomain = serializers.CharField(source="hotel.subdomain", read_only=True)
     user = UserSerializer(read_only=True)
     role = RoleSerializer(read_only=True)
     role_id = serializers.UUIDField(write_only=True, required=False, allow_null=True)
@@ -424,6 +427,9 @@ class HotelMembershipSerializer(serializers.ModelSerializer):
         model = HotelMembership
         fields = [
             "id",
+            "hotel_id",
+            "hotel_name",
+            "hotel_subdomain",
             "user",
             "role",
             "role_id",
@@ -431,7 +437,8 @@ class HotelMembershipSerializer(serializers.ModelSerializer):
             "joined_at",
             "permission_codes",
         ]
-        read_only_fields = ["id", "joined_at", "user"]
+        read_only_fields = ["id", "joined_at", "user", "hotel_id", "hotel_name", "hotel_subdomain"]
+
 
     def get_permission_codes(self, obj) -> list[str]:
         """

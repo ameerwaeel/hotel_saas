@@ -59,9 +59,10 @@ SILKY_META = True
 SILKY_ANALYZE_QUERIES = True
 
 # ---------------------------------------------------------------------------
-# Email: يطبع في الـ console بدل الإرسال الفعلي
+# Email: يقرأ من .env (SMTP إذا وُجدت الإعدادات، وإلا console backend)
 # ---------------------------------------------------------------------------
-EMAIL_BACKEND = "django.core.mail.backends.console.EmailBackend"
+EMAIL_BACKEND = env("EMAIL_BACKEND", default="django.core.mail.backends.console.EmailBackend")
+
 
 # ---------------------------------------------------------------------------
 # DRF: إضافة BrowsableAPIRenderer في التطوير فقط لسهولة الاختبار

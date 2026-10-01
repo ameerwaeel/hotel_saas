@@ -29,6 +29,7 @@ from .views import (
     MeView,
     PasswordChangeView,
     PasswordResetRequestView,
+    PasswordResetConfirmView,
     SelectHotelView,
     MyHotelsView,
 )
@@ -53,10 +54,12 @@ urlpatterns = [
     path("me/", MeView.as_view(), name="me"),
     path("change-password/", PasswordChangeView.as_view(), name="change-password"),
     path("reset-password/", PasswordResetRequestView.as_view(), name="reset-password"),
+    path("reset-password-confirm/", PasswordResetConfirmView.as_view(), name="reset-password-confirm"),
 
     # Hotel Context
     path("select-hotel/", SelectHotelView.as_view(), name="select-hotel"),
     path("my-hotels/", MyHotelsView.as_view(), name="my-hotels"),
+
 
     # Platform Admin User Management
     path("", include(router.urls)),

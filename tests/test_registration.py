@@ -136,3 +136,58 @@ class TestPlatformAdminUserManagement:
         assert response.status_code == status.HTTP_201_CREATED
         created_user = User.objects.get(email="newadmin@saas.com")
         assert created_user.is_platform_admin is True
+
+
+@pytest.mark.django_db
+class TestHotelMemberList:
+    """اختبار استعراض موظفي وأعضاء الفندق."""
+
+    def test_list_members_success(self, auth_client, hotel_a, membership_a):
+        url = "/api/v1/auth/members/"
+        response = auth_client.get(url, HTTP_X_HOTEL_ID=str(hotel_a.id))
+        assert response.status_code == status.HTTP_200_OK
+        res_data = response.json()
+        assert res_data["success"] is True
+        assert len(res_data["data"]) >= 1
+        assert res_data["data"][0]["hotel_id"] == str(hotel_a.id)
+        assert res_data["data"][0]["hotel_name"] == hotel_a.name
+
+
+
+@pytest.mark.django_db
+class TestPasswordResetFlow:
+    """اختبار دورة إعادة تعيين كلمة المرور كاملة عبر الـ API."""
+
+    def test_password_reset_request_and_confirm_flow(self, api_client, user):
+        from django.contrib.auth.tokens import default_token_generator
+        from django.utils.http import urlsafe_base64_encode
+        from django.utils.encoding import force_bytes
+
+        # 1. طلب إعادة تعيين كلمة المرور
+        request_url = "/api/v1/auth/reset-password/"
+        req_res = api_client.post(request_url, {"email": user.email}, format="json")
+        assert req_res.status_code == status.HTTP_200_OK
+        assert req_res.json()["success"] is True
+
+        # 2. توليد token و uid للمستخدم
+        token = default_token_generator.make_token(user)
+        uid = urlsafe_base64_encode(force_bytes(user.pk))
+
+        # 3. تأكيد إعادة تعيين كلمة المرور
+        confirm_url = "/api/v1/auth/reset-password-confirm/"
+        confirm_data = {
+            "uid": uid,
+            "token": token,
+            "new_password": "NewSecurePassword456!",
+            "confirm_password": "NewSecurePassword456!",
+        }
+        confirm_res = api_client.post(confirm_url, confirm_data, format="json")
+        assert confirm_res.status_code == status.HTTP_200_OK
+        assert confirm_res.json()["success"] is True
+
+        # 4. التحقق من القدرة على تسجيل الدخول بكلمة المرور الجديدة
+        login_url = "/api/v1/auth/login/"
+        login_res = api_client.post(login_url, {"email": user.email, "password": "NewSecurePassword456!"}, format="json")
+        assert login_res.status_code == status.HTTP_200_OK
+        assert login_res.json()["success"] is True
+

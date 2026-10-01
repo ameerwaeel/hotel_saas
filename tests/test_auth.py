@@ -166,6 +166,20 @@ class TestMeEndpoint:
         assert response.status_code == status.HTTP_200_OK
         assert response.json()["data"]["first_name"] == "Updated"
 
+    def test_get_me_with_active_hotel(self, auth_client, user, hotel_a, membership_a):
+        """جلب بيانات المستخدم مع سياق الفندق النشط."""
+        url = "/api/v1/auth/me/"
+        response = auth_client.get(url, HTTP_X_HOTEL_ID=str(hotel_a.id))
+
+        assert response.status_code == status.HTTP_200_OK
+        data = response.json()["data"]
+        assert data["email"] == user.email
+        assert data["active_hotel"] is not None
+        assert data["active_hotel"]["id"] == str(hotel_a.id)
+        assert data["current_role"] == membership_a.role.name
+        assert "rooms.view" in data["permissions"]
+
+
 
 @pytest.mark.django_db
 class TestSelectHotel:

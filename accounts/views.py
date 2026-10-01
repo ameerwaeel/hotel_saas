@@ -28,7 +28,12 @@ Endpoints:
 import logging
 from django.db import transaction
 from django.contrib.auth import get_user_model
+from django.contrib.auth.tokens import default_token_generator
+from django.utils.http import urlsafe_base64_encode, urlsafe_base64_decode
+from django.utils.encoding import force_bytes, force_str
 from django.utils.text import slugify
+from accounts.tasks import send_mail_resilient
+
 from rest_framework import status, viewsets
 from rest_framework.decorators import action
 from rest_framework.permissions import AllowAny, IsAuthenticated
@@ -248,7 +253,31 @@ class AddHotelMemberView(APIView):
     إضافة موظف/عضو جديد للفندق النشط (بواسطة مدير الفندق).
     """
 
+
     permission_classes = [IsAuthenticated, IsHotelMember]
+
+    @extend_schema(
+        tags=["auth"],
+        summary="List Hotel Members",
+        description="List all members and their roles for the active hotel.",
+    )
+    def get(self, request):
+        hotel = getattr(request, "hotel", None)
+        if not hotel:
+            return Response(
+                {"success": False, "error": {"code": "TENANT_NOT_FOUND", "message": "No active hotel selected."}},
+                status=status.HTTP_400_BAD_REQUEST,
+            )
+
+        memberships = (
+            HotelMembership.objects
+            .filter(hotel=hotel)
+            .select_related("user", "role")
+            .prefetch_related("role__rolepermissions__permission")
+            .order_by("user__first_name", "user__email")
+        )
+        serializer = HotelMembershipSerializer(memberships, many=True)
+        return Response({"success": True, "data": serializer.data})
 
     @extend_schema(
         tags=["auth"],
@@ -273,8 +302,10 @@ class AddHotelMemberView(APIView):
 
         # التحقق مما إذا كان المستخدم موجوداً مسبقاً، أو إنشاؤه
         user = User.objects.filter(email=email).first()
+        is_new_user = False
+        password = data.get("password") or "TempPass123!"
         if not user:
-            password = data.get("password") or "TempPass123!"
+            is_new_user = True
             user = User.objects.create_user(
                 email=email,
                 password=password,
@@ -297,6 +328,22 @@ class AddHotelMemberView(APIView):
             status="active",
         )
 
+        # إرسال بريد دعوة/ترحيب غير متزامن
+        subject = f"You have been added to {hotel.name} on HOTEL SaaS"
+        body_msg = (
+            f"Hello {user.first_name or user.email},\n\n"
+            f"You have been granted access to hotel '{hotel.name}' with the role '{role.name}'.\n"
+        )
+        if is_new_user:
+            body_msg += f"Your temporary password is: {password}\nPlease change it upon first login.\n"
+        body_msg += "\nWelcome aboard,\nHOTEL SaaS Team"
+
+        send_mail_resilient(
+            subject=subject,
+            message=body_msg,
+            recipient_list=[user.email],
+        )
+
         return Response(
             {
                 "success": True,
@@ -305,6 +352,7 @@ class AddHotelMemberView(APIView):
             },
             status=status.HTTP_201_CREATED,
         )
+
 
 
 class UserManagementViewSet(viewsets.ModelViewSet):
@@ -379,7 +427,7 @@ class LogoutView(APIView):
 
 class MeView(APIView):
     """
-    GET  /api/v1/auth/me/   → بيانات المستخدم الحالي
+    GET  /api/v1/auth/me/   → بيانات المستخدم الحالي مع سياق الفندق النشط
     PATCH /api/v1/auth/me/  → تعديل بيانات المستخدم
     """
 
@@ -387,8 +435,39 @@ class MeView(APIView):
 
     @extend_schema(tags=["auth"], summary="Get current user")
     def get(self, request):
-        serializer = UserSerializer(request.user)
-        return Response({"success": True, "data": serializer.data})
+        user_data = UserSerializer(request.user).data
+        active_hotel = getattr(request, "hotel", None)
+        active_hotel_data = None
+        current_role = None
+        permissions = []
+
+        if active_hotel:
+            active_hotel_data = {
+                "id": str(active_hotel.id),
+                "name": active_hotel.name,
+                "subdomain": active_hotel.subdomain,
+            }
+            membership = (
+                HotelMembership.objects.filter(user=request.user, hotel=active_hotel, status="active")
+                .select_related("role")
+                .prefetch_related("role__rolepermissions__permission")
+                .first()
+            )
+            if membership and membership.role:
+                current_role = membership.role.name
+                permissions = [rp.permission.code for rp in membership.role.rolepermissions.all()]
+            elif request.user.is_platform_admin or request.user.is_superuser:
+
+                current_role = "Platform Superadmin"
+                permissions = ["*"]
+
+        response_data = {
+            **user_data,
+            "active_hotel": active_hotel_data,
+            "current_role": current_role,
+            "permissions": permissions,
+        }
+        return Response({"success": True, "data": response_data})
 
     @extend_schema(tags=["auth"], request=UserUpdateSerializer, summary="Update profile")
     def patch(self, request):
@@ -422,9 +501,9 @@ class PasswordChangeView(APIView):
 class PasswordResetRequestView(APIView):
     """
     POST /api/v1/auth/reset-password/
-    طلب إعادة تعيين كلمة المرور (يُرسل email).
+    طلب إعادة تعيين كلمة المرور (يُرسل بريداً إلكترونياً حقيقياً عبر Celery/SMTP).
 
-    ⚠️ لا نُخبر المستخدم إذا كان الـ email موجوداً أم لا (security best practice).
+    ⚠️ لا نُخبر المستخدم إذا كان الـ email موجوداً أم لا (Security Best Practice).
     """
 
     permission_classes = [AllowAny]
@@ -434,20 +513,90 @@ class PasswordResetRequestView(APIView):
         serializer = PasswordResetRequestSerializer(data=request.data)
         serializer.is_valid(raise_exception=True)
 
-        email = serializer.validated_data["email"]
+        email = serializer.validated_data["email"].lower()
 
         try:
             user = User.objects.get(email=email, is_active=True)
-            # TODO: إرسال email (يُفعَّل في Phase 8 مع Celery)
-            logger.info("Password reset requested", extra={"email": email, "user_id": str(user.id)})
+            token = default_token_generator.make_token(user)
+            uid = urlsafe_base64_encode(force_bytes(user.pk))
+
+            subject = "HOTEL SaaS - Password Reset Request"
+            message = (
+                f"Hello {user.first_name or user.email},\n\n"
+                f"We received a request to reset your password for HOTEL SaaS.\n"
+                f"Your reset Token is: {token}\n"
+                f"Your UID is: {uid}\n\n"
+                f"Please submit this token and UID to POST /api/v1/auth/reset-password-confirm/ with your new password.\n"
+                f"If you did not request this, please ignore this email.\n"
+            )
+            html_message = f"""
+            <h2>Password Reset Request</h2>
+            <p>Hello <strong>{user.first_name or user.email}</strong>,</p>
+            <p>We received a request to reset your password for your HOTEL SaaS account.</p>
+            <p><strong>UID:</strong> <code>{uid}</code></p>
+            <p><strong>Token:</strong> <code>{token}</code></p>
+            <p>Submit these in POST <code>/api/v1/auth/reset-password-confirm/</code> with your new password.</p>
+            <p>If you did not request this, please ignore this email.</p>
+            """
+            send_mail_resilient(
+                subject=subject,
+                message=message,
+                recipient_list=[user.email],
+                html_message=html_message,
+            )
+            logger.info("Password reset email queued/sent", extra={"email": email, "user_id": str(user.id)})
         except User.DoesNotExist:
-            # لا نُخبر المستخدم إذا كان الـ email غير موجود
+            # لا نُخبر المستخدم إذا كان الـ email غير موجود (Security Best Practice)
             pass
 
         return Response({
             "success": True,
-            "message": "If this email exists, a reset link has been sent.",
+            "message": "If this email exists in our system, a password reset email has been sent.",
         })
+
+
+class PasswordResetConfirmView(APIView):
+    """
+    POST /api/v1/auth/reset-password-confirm/
+    تأكيد إعادة تعيين كلمة المرور باستخدام uid و token.
+    """
+
+    permission_classes = [AllowAny]
+
+    @extend_schema(tags=["auth"], request=PasswordResetConfirmSerializer, summary="Confirm password reset")
+    def post(self, request):
+        serializer = PasswordResetConfirmSerializer(data=request.data)
+        serializer.is_valid(raise_exception=True)
+
+        uid_b64 = serializer.validated_data["uid"]
+        token = serializer.validated_data["token"]
+        new_password = serializer.validated_data["new_password"]
+
+        try:
+            user_id = force_str(urlsafe_base64_decode(uid_b64))
+            user = User.objects.get(pk=user_id, is_active=True)
+        except (TypeError, ValueError, OverflowError, User.DoesNotExist):
+            return Response(
+                {"success": False, "error": {"code": "INVALID_TOKEN", "message": "Invalid user ID or token."}},
+                status=status.HTTP_400_BAD_REQUEST,
+            )
+
+        if not default_token_generator.check_token(user, token):
+            return Response(
+                {"success": False, "error": {"code": "INVALID_TOKEN", "message": "Token is invalid or expired."}},
+                status=status.HTTP_400_BAD_REQUEST,
+            )
+
+        user.set_password(new_password)
+        user.save(update_fields=["password"])
+
+        logger.info("Password reset successfully confirmed", extra={"user_id": str(user.id)})
+
+        return Response({
+            "success": True,
+            "message": "Password has been reset successfully. You can now log in with your new password.",
+        })
+
 
 
 class SelectHotelView(APIView):

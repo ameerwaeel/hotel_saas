@@ -11,7 +11,7 @@
 ### 1. مصادقة المستخدمين وحسابات الموظفين (`/api/v1/auth/`)
 - [1.1 تسجيل مستخدم جديد عادي (Register User)](#11-تسجيل-مستخدم-جديد-عادي-register-user)
 - [1.2 تسجيل فندق جديد بالكامل مع المالك (Register Hotel & Owner - Tenant Onboarding)](#12-تسجيل-فندق-جديد-بالكامل-مع-المالك-register-hotel--owner---tenant-onboarding)
-- [1.3 إضافة أو دعوة موظف للفندق النشط (Add/Invite Hotel Member)](#13-إضافة-أو-دعوة-موظف-للفندق-النشط-addinvite-hotel-member)
+- [1.3 استعراض وإضافة موظف للفندق النشط (List & Add/Invite Hotel Member)](#13-استعراض-وإضافة-أعضاء-وموظفي-الفندق-النشط-list--addinvite-hotel-members)
 - [1.4 إدارة وإنشاء المستخدمين من قبل مدير المنصة (Platform Admin User Management)](#14-إدارة-وإنشاء-المستخدمين-من-قبل-مدير-المنصة-platform-admin-user-management)
 - [1.5 تسجيل الدخول (Login)](#15-تسجيل-الدخول-login)
 - [1.6 تسجيل الخروج (Logout)](#16-تسجيل-الخروج-logout)
@@ -20,8 +20,10 @@
 - [1.9 تعديل الملف الشخصي (Update Profile - Me)](#19-تعديل-الملف-الشخصي-update-profile---me)
 - [1.10 تغيير كلمة المرور (Change Password)](#110-تغيير-كلمة-المرور-change-password)
 - [1.11 طلب إعادة تعيين كلمة المرور (Password Reset Request)](#111-طلب-إعادة-تعيين-كلمة-المرور-password-reset-request)
-- [1.12 اختيار الفندق النشط (Select Active Hotel)](#112-اختيار-الفندق-النشط-select-active-hotel)
-- [1.13 استعراض فنادق وأدوار وصلاحيات المستخدم (My Hotels)](#113-استعراض-فنادق-وأدوار-وصلاحيات-المستخدم-my-hotels)
+- [1.12 تأكيد إعادة تعيين كلمة المرور (Password Reset Confirm)](#112-تأكيد-إعادة-تعيين-كلمة-المرور-password-reset-confirm)
+- [1.13 اختيار الفندق النشط (Select Active Hotel)](#113-اختيار-الفندق-النشط-select-active-hotel)
+- [1.14 استعراض فنادق وأدوار وصلاحيات المستخدم (My Hotels)](#114-استعراض-فنادق-وأدوار-وصلاحيات-المستخدم-my-hotels)
+
 
 ### 2. إدارة الفنادق والمستأجرين (`/api/v1/tenants/`)
 - [2.1 استعراض قائمة الفنادق (List Hotels)](#21-استعراض-قائمة-الفنادق-list-hotels)
@@ -203,16 +205,68 @@
 
 ---
 
-### 1.3 إضافة أو دعوة موظف للفندق النشط (Add/Invite Hotel Member)
+### 1.3 استعراض وإضافة أعضاء وموظفي الفندق النشط (List & Add/Invite Hotel Members)
 - **URL:** `/api/v1/auth/members/`
-- **Method:** `POST`
+- **Method:** `GET`, `POST`
 - **Auth Required:** نعم (عضو فندق نشط `IsHotelMember`)
 - **Headers:**  
   `Authorization: Bearer <access_token>`  
   `X-Hotel-ID: <active_hotel_id>`  
   `Content-Type: application/json`
 
-#### Request Body (JSON):
+#### أ) استعراض أعضاء الفندق النشط (GET):
+**Request Body:** *فارغ*
+
+**Success Response `200 OK`:**
+```json
+{
+  "success": true,
+  "data": [
+    {
+      "id": "a1b2c3d4-e5f6-7890-abcd-ef1234567890",
+      "hotel_id": "cd19d916-13b5-48d6-b9f0-1d39531e740b",
+      "hotel_name": "Cairo Palace Hotel",
+      "hotel_subdomain": "cairo-palace",
+      "user": {
+        "id": "f5e4d3c2-b1a0-9876-5432-10fedcba9876",
+        "email": "receptionist@cairopalace.com",
+        "username": "receptionist",
+        "first_name": "Mona",
+        "last_name": "Sami",
+        "full_name": "Mona Sami",
+        "phone": "+201022334455",
+        "avatar": null,
+        "preferred_language": "en",
+        "is_platform_admin": false,
+        "date_joined": "2026-10-01T11:58:00Z",
+        "last_login": null
+      },
+      "role": {
+        "id": "90ba95ef-206a-464a-b5e0-cb962ba87fe9",
+        "name": "Receptionist",
+        "description": "Front desk and checkin operations",
+        "is_system_role": false,
+        "permissions": [
+          {
+            "code": "rooms.view",
+            "name": "View Rooms"
+          }
+        ],
+        "members_count": 1,
+        "created_at": "2026-10-01T11:00:00Z"
+      },
+      "status": "active",
+      "joined_at": "2026-10-01T11:58:00Z",
+      "permission_codes": [
+        "rooms.view"
+      ]
+    }
+  ]
+}
+```
+
+#### ب) إضافة/دعوة عضو جديد للفندق (POST):
+**Request Body (JSON):**
 ```json
 {
   "email": "receptionist@cairopalace.com",
@@ -224,13 +278,16 @@
 }
 ```
 
-#### Success Response `201 Created`:
+**Success Response `201 Created`:**
 ```json
 {
   "success": true,
   "message": "Member added to hotel successfully.",
   "data": {
     "id": "a1b2c3d4-e5f6-7890-abcd-ef1234567890",
+    "hotel_id": "cd19d916-13b5-48d6-b9f0-1d39531e740b",
+    "hotel_name": "Cairo Palace Hotel",
+    "hotel_subdomain": "cairo-palace",
     "user": {
       "id": "f5e4d3c2-b1a0-9876-5432-10fedcba9876",
       "email": "receptionist@cairopalace.com",
@@ -267,6 +324,7 @@
   }
 }
 ```
+
 
 ---
 
@@ -436,7 +494,9 @@
 - **URL:** `/api/v1/auth/me/`
 - **Method:** `GET`
 - **Auth Required:** نعم (`Bearer <access_token>`)
-- **Headers:** `Authorization: Bearer <access_token>`
+- **Headers:**  
+  `Authorization: Bearer <access_token>`  
+  `X-Hotel-ID: <active_hotel_id>` (اختياري، لجلب دور وصلاحيات الفندق)
 
 #### Request Body: *فارغ*
 
@@ -446,20 +506,37 @@
   "success": true,
   "data": {
     "id": "5e3dd943-5a1b-49f4-ab7b-ab76df21216b",
-    "email": "admin@hotel.com",
-    "username": "admin",
-    "first_name": "Ameer",
-    "last_name": "Waeel",
-    "full_name": "Ameer Waeel",
-    "phone": "+201000000000",
+    "email": "karim.hassan@cairopalace.com",
+    "username": "karim.hassan",
+    "first_name": "Karim",
+    "last_name": "Hassan",
+    "full_name": "Karim Hassan",
+    "phone": "+201099887766",
     "avatar": null,
-    "preferred_language": "en",
+    "preferred_language": "ar",
     "is_platform_admin": false,
-    "date_joined": "2026-09-28T16:25:34Z",
-    "last_login": "2026-10-01T11:00:00Z"
+    "date_joined": "2026-10-01T10:15:30Z",
+    "last_login": "2026-10-01T15:20:00Z",
+    "active_hotel": {
+      "id": "cd19d916-13b5-48d6-b9f0-1d39531e740b",
+      "name": "Cairo Palace Hotel",
+      "subdomain": "cairo-palace"
+    },
+    "current_role": "Owner",
+    "permissions": [
+      "rooms.view",
+      "rooms.create",
+      "rooms.update",
+      "rooms.delete",
+      "reservations.view",
+      "reservations.create",
+      "payments.view",
+      "customers.view"
+    ]
   }
 }
 ```
+
 
 #### Error Response (غير مسجل) `401 Unauthorized`:
 ```json
@@ -578,13 +655,51 @@
 ```json
 {
   "success": true,
-  "message": "If this email exists, a reset link has been sent."
+  "message": "If this email exists in our system, a password reset email has been sent."
 }
 ```
 
 ---
 
-### 1.8 اختيار الفندق النشط (Select Active Hotel)
+### 1.8 تأكيد إعادة تعيين كلمة المرور (Password Reset Confirm)
+- **URL:** `/api/v1/auth/reset-password-confirm/`
+- **Method:** `POST`
+- **Auth Required:** لا (Public)
+- **Headers:** `Content-Type: application/json`
+
+#### Request Body (JSON):
+```json
+{
+  "uid": "NQ",
+  "token": "d7s1z2-3844d1f2e82abcb471ad98bc203498f2",
+  "new_password": "NewStrongPassword456!",
+  "confirm_password": "NewStrongPassword456!"
+}
+```
+
+#### Success Response `200 OK`:
+```json
+{
+  "success": true,
+  "message": "Password has been reset successfully. You can now log in with your new password."
+}
+```
+
+#### Error Response (رمز غير صالح أو منتهي) `400 Bad Request`:
+```json
+{
+  "success": false,
+  "error": {
+    "code": "INVALID_TOKEN",
+    "message": "Token is invalid or expired."
+  }
+}
+```
+
+---
+
+### 1.9 اختيار الفندق النشط (Select Active Hotel)
+
 - **URL:** `/api/v1/auth/select-hotel/`
 - **Method:** `POST`
 - **Auth Required:** نعم (`Bearer <access_token>`)
@@ -630,7 +745,7 @@
 
 ---
 
-### 1.9 استعراض فنادق وأدوار وصلاحيات المستخدم (My Hotels)
+### 1.10 استعراض فنادق وأدوار وصلاحيات المستخدم (My Hotels)
 - **URL:** `/api/v1/auth/my-hotels/`
 - **Method:** `GET`
 - **Auth Required:** نعم (`Bearer <access_token>`)
@@ -645,6 +760,9 @@
   "data": [
     {
       "id": "7fae0176-7bc2-4523-bd0d-13f5635cb049",
+      "hotel_id": "18c0df1b-31d2-4ef8-a37a-75176b6ef001",
+      "hotel_name": "Hilton Cairo Heliopolis",
+      "hotel_subdomain": "hilton-cairo",
       "user": {
         "id": "5e3dd943-5a1b-49f4-ab7b-ab76df21216b",
         "email": "admin@hotel.com",
@@ -655,6 +773,7 @@
         "phone": "+201000000000",
         "avatar": null,
         "preferred_language": "en",
+
         "is_platform_admin": false,
         "date_joined": "2026-09-28T16:25:34Z",
         "last_login": "2026-10-01T11:00:00Z"
