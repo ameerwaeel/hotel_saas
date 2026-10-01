@@ -218,7 +218,7 @@ class AddHotelMemberSerializer(serializers.Serializer):
 
 class PlatformAdminCreateUserSerializer(serializers.ModelSerializer):
     """
-    Serializer لمدير المنصة (Platform Admin) لإنشاء أي نوع مستخدم (أدمن منصة أو مستخدم عام).
+    Serializer لمدير المنصة (Platform Admin) لإنشاء أي نوع مستخدم (أدمن منصة، سوبر يوزر، أو موظف).
     """
 
     password = serializers.CharField(write_only=True, style={"input_type": "password"})
@@ -234,6 +234,7 @@ class PlatformAdminCreateUserSerializer(serializers.ModelSerializer):
             "phone",
             "is_platform_admin",
             "is_staff",
+            "is_superuser",
             "is_active",
             "preferred_language",
         ]
@@ -250,7 +251,35 @@ class PlatformAdminCreateUserSerializer(serializers.ModelSerializer):
 
     def create(self, validated_data):
         password = validated_data.pop("password")
-        return User.objects.create_user(password=password, **validated_data)
+        is_superuser = validated_data.pop("is_superuser", False)
+        user = User.objects.create_user(password=password, **validated_data)
+        if is_superuser:
+            user.is_superuser = True
+            user.is_staff = True
+            user.save(update_fields=["is_superuser", "is_staff"])
+        return user
+
+
+class PlatformAdminUpdateUserSerializer(serializers.ModelSerializer):
+    """
+    Serializer لمدير المنصة لتعديل أي مستخدم وتغيير صلاحياته (مثل ترقيته إلى is_superuser أو is_staff).
+    """
+
+    class Meta:
+        model = User
+        fields = [
+            "id",
+            "email",
+            "first_name",
+            "last_name",
+            "phone",
+            "is_platform_admin",
+            "is_staff",
+            "is_superuser",
+            "is_active",
+            "preferred_language",
+        ]
+        read_only_fields = ["id"]
 
 
 class PasswordChangeSerializer(serializers.Serializer):
@@ -425,9 +454,24 @@ class ActiveHotelSelectionSerializer(serializers.Serializer):
     )
 
     def validate_hotel_id(self, value):
-        """تتحقق من أن المستخدم عضو في هذا الفندق."""
+        """
+        التحقق من صلاحية اختيار الفندق:
+        1. إذا كان المستخدم مدير منصة (is_platform_admin) أو Superuser:
+           يسمح له باختيار أي فندق نشط في النظام لإدارته وتفقد بياناته.
+        2. للمستخدمين والموظفين العاديين:
+           يجب أن يكون لديه عضوية نشطة (HotelMembership) في هذا الفندق تحديداً.
+        """
         user = self.context["request"].user
         from accounts.models import HotelMembership
+        from tenants.models import Hotel
+
+        # 1. Platform Admin / Superuser Access
+        if getattr(user, "is_platform_admin", False) or getattr(user, "is_superuser", False):
+            if not Hotel.objects.filter(id=value, is_active=True).exists():
+                raise ValidationError("Hotel does not exist or is inactive.")
+            return value
+
+        # 2. Regular Hotel Member Access
         if not HotelMembership.objects.filter(
             user=user,
             hotel_id=value,

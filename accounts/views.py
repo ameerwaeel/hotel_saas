@@ -49,6 +49,7 @@ from .serializers import (
     RegisterHotelSerializer,
     AddHotelMemberSerializer,
     PlatformAdminCreateUserSerializer,
+    PlatformAdminUpdateUserSerializer,
     PasswordChangeSerializer,
     PasswordResetRequestSerializer,
     PasswordResetConfirmSerializer,
@@ -322,6 +323,8 @@ class UserManagementViewSet(viewsets.ModelViewSet):
     def get_serializer_class(self):
         if self.action == "create":
             return PlatformAdminCreateUserSerializer
+        elif self.action in ["update", "partial_update"]:
+            return PlatformAdminUpdateUserSerializer
         return UserSerializer
 
 

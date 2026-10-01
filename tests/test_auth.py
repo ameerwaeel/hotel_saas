@@ -192,6 +192,18 @@ class TestSelectHotel:
 
         assert response.status_code == status.HTTP_400_BAD_REQUEST
 
+    def test_select_hotel_platform_admin_can_select_any_hotel(self, platform_admin_client, hotel_b):
+        """مدير المنصة يمكنه اختيار أي فندق نشط حتى لو لم يكن عضواً عادياً فيه → 200."""
+        url = "/api/v1/auth/select-hotel/"
+        response = platform_admin_client.post(url, {
+            "hotel_id": str(hotel_b.id),
+        }, format="json")
+
+        assert response.status_code == status.HTTP_200_OK
+        data = response.json()
+        assert data["data"]["hotel_id"] == str(hotel_b.id)
+        assert data["data"]["hotel_name"] == hotel_b.name
+
 
 @pytest.mark.django_db
 class TestMyHotels:
