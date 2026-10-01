@@ -9,15 +9,19 @@
 ## 📑 فهرس الـ Endpoints
 
 ### 1. مصادقة المستخدمين وحسابات الموظفين (`/api/v1/auth/`)
-- [1.1 تسجيل الدخول (Login)](#11-تسجيل-الدخول-login)
-- [1.2 تسجيل الخروج (Logout)](#12-تسجيل-الخروج-logout)
-- [1.3 تجديد Access Token (Token Refresh)](#13-تجديد-access-token-token-refresh)
-- [1.4 استرجاع الملف الشخصي الحالي (Get Profile - Me)](#14-استرجاع-الملف-الشخصي-الحالي-get-profile---me)
-- [1.5 تعديل الملف الشخصي (Update Profile - Me)](#15-تعديل-الملف-الشخصي-update-profile---me)
-- [1.6 تغيير كلمة المرور (Change Password)](#16-تغيير-كلمة-المرور-change-password)
-- [1.7 طلب إعادة تعيين كلمة المرور (Password Reset Request)](#17-طلب-إعادة-تعيين-كلمة-المرور-password-reset-request)
-- [1.8 اختيار الفندق النشط (Select Active Hotel)](#18-اختيار-الفندق-النشط-select-active-hotel)
-- [1.9 استعراض فنادق وأدوار وصلاحيات المستخدم (My Hotels)](#19-استعراض-فنادق-وأدوار-وصلاحيات-المستخدم-my-hotels)
+- [1.1 تسجيل مستخدم جديد عادي (Register User)](#11-تسجيل-مستخدم-جديد-عادي-register-user)
+- [1.2 تسجيل فندق جديد بالكامل مع المالك (Register Hotel & Owner - Tenant Onboarding)](#12-تسجيل-فندق-جديد-بالكامل-مع-المالك-register-hotel--owner---tenant-onboarding)
+- [1.3 إضافة أو دعوة موظف للفندق النشط (Add/Invite Hotel Member)](#13-إضافة-أو-دعوة-موظف-للفندق-النشط-addinvite-hotel-member)
+- [1.4 إدارة وإنشاء المستخدمين من قبل مدير المنصة (Platform Admin User Management)](#14-إدارة-وإنشاء-المستخدمين-من-قبل-مدير-المنصة-platform-admin-user-management)
+- [1.5 تسجيل الدخول (Login)](#15-تسجيل-الدخول-login)
+- [1.6 تسجيل الخروج (Logout)](#16-تسجيل-الخروج-logout)
+- [1.7 تجديد Access Token (Token Refresh)](#17-تجديد-access-token-token-refresh)
+- [1.8 استرجاع الملف الشخصي الحالي (Get Profile - Me)](#18-استرجاع-الملف-الشخصي-الحالي-get-profile---me)
+- [1.9 تعديل الملف الشخصي (Update Profile - Me)](#19-تعديل-الملف-الشخصي-update-profile---me)
+- [1.10 تغيير كلمة المرور (Change Password)](#110-تغيير-كلمة-المرور-change-password)
+- [1.11 طلب إعادة تعيين كلمة المرور (Password Reset Request)](#111-طلب-إعادة-تعيين-كلمة-المرور-password-reset-request)
+- [1.12 اختيار الفندق النشط (Select Active Hotel)](#112-اختيار-الفندق-النشط-select-active-hotel)
+- [1.13 استعراض فنادق وأدوار وصلاحيات المستخدم (My Hotels)](#113-استعراض-فنادق-وأدوار-وصلاحيات-المستخدم-my-hotels)
 
 ### 2. إدارة الفنادق والمستأجرين (`/api/v1/tenants/`)
 - [2.1 استعراض قائمة الفنادق (List Hotels)](#21-استعراض-قائمة-الفنادق-list-hotels)
@@ -98,7 +102,223 @@
 
 ---
 
-### 1.1 تسجيل الدخول (Login)
+### 1.1 تسجيل مستخدم جديد عادي (Register User)
+- **URL:** `/api/v1/auth/register/`
+- **Method:** `POST`
+- **Auth Required:** لا (Public)
+- **Headers:** `Content-Type: application/json`
+
+#### Request Body (JSON):
+```json
+{
+  "email": "ameer.waeel99@gmail.com",
+  "password": "SecurePassword123!",
+  "confirm_password": "SecurePassword123!",
+  "first_name": "Ameer",
+  "last_name": "Waeel",
+  "phone": "+201011223344",
+  "preferred_language": "ar"
+}
+```
+
+#### Success Response `201 Created`:
+```json
+{
+  "success": true,
+  "message": "User registered successfully.",
+  "data": {
+    "access": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9...",
+    "refresh": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9...",
+    "user": {
+      "id": "c4a05c10-ef13-4ab5-b945-166efcc025bf",
+      "email": "ameer.waeel99@gmail.com",
+      "username": "ameer",
+      "first_name": "Ameer",
+      "last_name": "Waeel",
+      "full_name": "Ameer Waeel",
+      "phone": "+201011223344",
+      "avatar": null,
+      "preferred_language": "ar",
+      "is_platform_admin": false,
+      "date_joined": "2026-10-01T11:50:00Z",
+      "last_login": null
+    }
+  }
+}
+```
+
+---
+
+### 1.2 تسجيل فندق جديد بالكامل مع المالك (Register Hotel & Owner - Tenant Onboarding)
+- **URL:** `/api/v1/auth/register-hotel/`
+- **Method:** `POST`
+- **Auth Required:** لا (Public)
+- **Headers:** `Content-Type: application/json`
+
+#### Request Body (JSON):
+```json
+{
+  "email": "owner@cairopalace.com",
+  "password": "StrongPassword123!",
+  "first_name": "Karim",
+  "last_name": "Hassan",
+  "phone": "+201099887766",
+  "hotel_name": "Cairo Palace Hotel",
+  "subdomain": "cairo-palace",
+  "default_currency": "USD",
+  "default_language": "en"
+}
+```
+
+#### Success Response `201 Created`:
+```json
+{
+  "success": true,
+  "message": "Hotel and Owner account registered successfully.",
+  "data": {
+    "access": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9...",
+    "refresh": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9...",
+    "user": {
+      "id": "e4b3c2d1-0000-0000-0000-000000000001",
+      "email": "owner@cairopalace.com",
+      "username": "owner",
+      "first_name": "Karim",
+      "last_name": "Hassan",
+      "full_name": "Karim Hassan",
+      "phone": "+201099887766",
+      "avatar": null,
+      "preferred_language": "en",
+      "is_platform_admin": false,
+      "date_joined": "2026-10-01T11:55:00Z",
+      "last_login": null
+    },
+    "hotel": {
+      "id": "7fae0176-7bc2-4523-bd0d-13f5635cb049",
+      "name": "Cairo Palace Hotel",
+      "subdomain": "cairo-palace"
+    }
+  }
+}
+```
+
+---
+
+### 1.3 إضافة أو دعوة موظف للفندق النشط (Add/Invite Hotel Member)
+- **URL:** `/api/v1/auth/members/`
+- **Method:** `POST`
+- **Auth Required:** نعم (عضو فندق نشط `IsHotelMember`)
+- **Headers:**  
+  `Authorization: Bearer <access_token>`  
+  `X-Hotel-ID: <active_hotel_id>`  
+  `Content-Type: application/json`
+
+#### Request Body (JSON):
+```json
+{
+  "email": "receptionist@cairopalace.com",
+  "role_id": "90ba95ef-206a-464a-b5e0-cb962ba87fe9",
+  "first_name": "Mona",
+  "last_name": "Sami",
+  "phone": "+201022334455",
+  "password": "TempPassword123!"
+}
+```
+
+#### Success Response `201 Created`:
+```json
+{
+  "success": true,
+  "message": "Member added to hotel successfully.",
+  "data": {
+    "id": "a1b2c3d4-e5f6-7890-abcd-ef1234567890",
+    "user": {
+      "id": "f5e4d3c2-b1a0-9876-5432-10fedcba9876",
+      "email": "receptionist@cairopalace.com",
+      "username": "receptionist",
+      "first_name": "Mona",
+      "last_name": "Sami",
+      "full_name": "Mona Sami",
+      "phone": "+201022334455",
+      "avatar": null,
+      "preferred_language": "en",
+      "is_platform_admin": false,
+      "date_joined": "2026-10-01T11:58:00Z",
+      "last_login": null
+    },
+    "role": {
+      "id": "90ba95ef-206a-464a-b5e0-cb962ba87fe9",
+      "name": "Receptionist",
+      "description": "Front desk and checkin operations",
+      "is_system_role": false,
+      "permissions": [
+        {
+          "code": "rooms.view",
+          "name": "View Rooms"
+        }
+      ],
+      "members_count": 1,
+      "created_at": "2026-10-01T11:00:00Z"
+    },
+    "status": "active",
+    "joined_at": "2026-10-01T11:58:00Z",
+    "permission_codes": [
+      "rooms.view"
+    ]
+  }
+}
+```
+
+---
+
+### 1.4 إدارة وإنشاء المستخدمين من قبل مدير المنصة (Platform Admin User Management)
+- **URL:**  
+  - `GET /api/v1/auth/users/` (قائمة المستخدمين في المنصة)  
+  - `POST /api/v1/auth/users/` (إنشاء مستخدم أو مدير منصة جديد)  
+  - `GET /api/v1/auth/users/{id}/` (تفاصيل مستخدم)  
+  - `PATCH /api/v1/auth/users/{id}/` (تعديل مستخدم)  
+  - `DELETE /api/v1/auth/users/{id}/` (حذف مستخدم)
+- **Method:** `GET`, `POST`, `PATCH`, `DELETE`
+- **Auth Required:** نعم (`IsPlatformAdmin`)
+- **Headers:**  
+  `Authorization: Bearer <access_token>`  
+  `Content-Type: application/json`
+
+#### Request Body لإنشاء مستخدم (POST):
+```json
+{
+  "email": "newadmin@saas.com",
+  "password": "AdminPassword123!",
+  "first_name": "System",
+  "last_name": "Administrator",
+  "phone": "+201011112222",
+  "is_platform_admin": true,
+  "is_staff": true,
+  "is_active": true,
+  "preferred_language": "en"
+}
+```
+
+#### Success Response `201 Created`:
+```json
+{
+  "id": "d4e5f6a7-b8c9-0123-4567-89abcdef0123",
+  "email": "newadmin@saas.com",
+  "username": "newadmin",
+  "first_name": "System",
+  "last_name": "Administrator",
+  "full_name": "System Administrator",
+  "phone": "+201011112222",
+  "avatar": null,
+  "preferred_language": "en",
+  "is_platform_admin": true,
+  "date_joined": "2026-10-01T12:00:00Z",
+  "last_login": null
+}
+```
+
+---
+
+### 1.5 تسجيل الدخول (Login)
 - **URL:** `/api/v1/auth/login/`
 - **Method:** `POST`
 - **Auth Required:** لا (Public)

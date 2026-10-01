@@ -77,10 +77,12 @@ class TenantMiddleware:
         ⚠️ Note: الـ JWT لم يُفكَّك هنا لأن ذلك دور rest_framework_simplejwt.
             في Phase 3 سنُضيف custom claim وسنقرأه من request.auth.
         """
-        # Phase 3+: قراءة hotel_id من JWT claims
-        # request.auth يكون متاحاً بعد authentication middleware
-        # لكن في مرحلة الـ middleware، الـ DRF authentication لم يُطبَّق بعد
-        # لذلك نستخدم session كـ fallback
+        # 1. Header: X-Hotel-ID (Stateless API clients, Postman, Frontend)
+        header_hotel_id = request.META.get("HTTP_X_HOTEL_ID")
+        if header_hotel_id:
+            return header_hotel_id
+
+        # 2. Session key (Web UI / Browsable API fallback)
         if hasattr(request, "session") and "active_hotel_id" in request.session:
             return request.session.get("active_hotel_id")
 

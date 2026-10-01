@@ -16,11 +16,16 @@ URLs:
   GET    /api/v1/auth/my-hotels/       → MyHotelsView
 """
 
-from django.urls import path
+from django.urls import path, include
+from rest_framework.routers import DefaultRouter
 from rest_framework_simplejwt.views import TokenRefreshView
 from .views import (
     LoginView,
     LogoutView,
+    RegisterView,
+    RegisterHotelView,
+    AddHotelMemberView,
+    UserManagementViewSet,
     MeView,
     PasswordChangeView,
     PasswordResetRequestView,
@@ -30,7 +35,15 @@ from .views import (
 
 app_name = "accounts"
 
+router = DefaultRouter()
+router.register(r"users", UserManagementViewSet, basename="user-management")
+
 urlpatterns = [
+    # Registration & Onboarding
+    path("register/", RegisterView.as_view(), name="register"),
+    path("register-hotel/", RegisterHotelView.as_view(), name="register-hotel"),
+    path("members/", AddHotelMemberView.as_view(), name="add-member"),
+
     # Authentication
     path("login/", LoginView.as_view(), name="login"),
     path("logout/", LogoutView.as_view(), name="logout"),
@@ -44,4 +57,7 @@ urlpatterns = [
     # Hotel Context
     path("select-hotel/", SelectHotelView.as_view(), name="select-hotel"),
     path("my-hotels/", MyHotelsView.as_view(), name="my-hotels"),
+
+    # Platform Admin User Management
+    path("", include(router.urls)),
 ]

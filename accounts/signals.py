@@ -58,7 +58,7 @@ def invalidate_cache_on_membership_change(sender, instance, created, **kwargs):
         extra={
             "user_id": str(user_id),
             "hotel_id": str(hotel_id),
-            "created": created,
+            "is_created": created,
         },
     )
 

@@ -113,6 +113,146 @@ class LoginSerializer(serializers.Serializer):
         return attrs
 
 
+class RegisterSerializer(serializers.ModelSerializer):
+    """
+    Serializer لتسجيل مستخدم جديد عادي في النظام.
+    """
+
+    password = serializers.CharField(
+        write_only=True,
+        style={"input_type": "password"},
+        help_text="Password must meet security standards",
+    )
+    confirm_password = serializers.CharField(
+        write_only=True,
+        style={"input_type": "password"},
+    )
+
+    class Meta:
+        model = User
+        fields = [
+            "id",
+            "email",
+            "password",
+            "confirm_password",
+            "first_name",
+            "last_name",
+            "phone",
+            "preferred_language",
+        ]
+        read_only_fields = ["id"]
+
+    def validate_email(self, value):
+        if User.objects.filter(email=value.lower()).exists():
+            raise ValidationError("A user with this email already exists.")
+        return value.lower()
+
+    def validate(self, attrs):
+        if attrs["password"] != attrs["confirm_password"]:
+            raise ValidationError({"confirm_password": "Passwords do not match."})
+        validate_password(attrs["password"])
+        return attrs
+
+    def create(self, validated_data):
+        validated_data.pop("confirm_password")
+        password = validated_data.pop("password")
+        return User.objects.create_user(password=password, **validated_data)
+
+
+class RegisterHotelSerializer(serializers.Serializer):
+    """
+    Serializer لتسجيل فندق جديد بالكامل مع مالك الفندق (Owner Onboarding).
+    يُنشئ Hotel + User + Owner Role + HotelMembership في عملية ذرية واحدة.
+    """
+
+    # بيانات صاحب الفندق
+    email = serializers.EmailField()
+    password = serializers.CharField(write_only=True, style={"input_type": "password"})
+    first_name = serializers.CharField(max_length=150)
+    last_name = serializers.CharField(max_length=150)
+    phone = serializers.CharField(max_length=20, required=False, allow_blank=True)
+
+    # بيانات الفندق
+    hotel_name = serializers.CharField(max_length=255)
+    subdomain = serializers.CharField(max_length=100)
+    default_currency = serializers.CharField(max_length=3, default="USD")
+    default_language = serializers.CharField(max_length=10, default="en")
+
+    def validate_email(self, value):
+        if User.objects.filter(email=value.lower()).exists():
+            raise ValidationError("A user with this email already exists.")
+        return value.lower()
+
+    def validate_subdomain(self, value):
+        from tenants.models import Hotel
+        value = value.lower()
+        if Hotel.objects.filter(subdomain=value).exists():
+            raise ValidationError("This hotel subdomain is already taken.")
+        return value
+
+    def validate(self, attrs):
+        validate_password(attrs["password"])
+        return attrs
+
+
+class AddHotelMemberSerializer(serializers.Serializer):
+    """
+    Serializer لإضافة أو دعوة موظف جديد لفندق محدد بواسطة مدير الفندق.
+    """
+
+    email = serializers.EmailField()
+    role_id = serializers.UUIDField()
+    first_name = serializers.CharField(max_length=150, required=False, allow_blank=True)
+    last_name = serializers.CharField(max_length=150, required=False, allow_blank=True)
+    phone = serializers.CharField(max_length=20, required=False, allow_blank=True)
+    password = serializers.CharField(write_only=True, required=False, allow_blank=True)
+
+    def validate_role_id(self, value):
+        hotel = self.context.get("hotel")
+        if not hotel:
+            raise ValidationError("No active hotel specified.")
+        if not Role.objects.filter(id=value, hotel=hotel).exists():
+            raise ValidationError("Specified role does not exist in this hotel.")
+        return value
+
+
+class PlatformAdminCreateUserSerializer(serializers.ModelSerializer):
+    """
+    Serializer لمدير المنصة (Platform Admin) لإنشاء أي نوع مستخدم (أدمن منصة أو مستخدم عام).
+    """
+
+    password = serializers.CharField(write_only=True, style={"input_type": "password"})
+
+    class Meta:
+        model = User
+        fields = [
+            "id",
+            "email",
+            "password",
+            "first_name",
+            "last_name",
+            "phone",
+            "is_platform_admin",
+            "is_staff",
+            "is_active",
+            "preferred_language",
+        ]
+        read_only_fields = ["id"]
+
+    def validate_email(self, value):
+        if User.objects.filter(email=value.lower()).exists():
+            raise ValidationError("A user with this email already exists.")
+        return value.lower()
+
+    def validate(self, attrs):
+        validate_password(attrs["password"])
+        return attrs
+
+    def create(self, validated_data):
+        password = validated_data.pop("password")
+        return User.objects.create_user(password=password, **validated_data)
+
+
 class PasswordChangeSerializer(serializers.Serializer):
     """
     Serializer لتغيير كلمة المرور.
