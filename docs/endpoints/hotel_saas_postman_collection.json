@@ -1,0 +1,413 @@
+{
+  "info": {
+    "name": "HOTEL SaaS API Collection (Phase 0-3)",
+    "_postman_id": "hotel-saas-api-v1-collection",
+    "description": "جميع الـ APIs الخاصة بمنصة HOTEL SaaS شاملة المصادقة والمستأجرين وإدارة الفنادق مع الـ JSON Request والـ Headers.",
+    "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
+  },
+  "variable": [
+    {
+      "key": "baseUrl",
+      "value": "http://127.0.0.1:8000/api/v1",
+      "type": "string"
+    },
+    {
+      "key": "accessToken",
+      "value": "",
+      "type": "string"
+    },
+    {
+      "key": "refreshToken",
+      "value": "",
+      "type": "string"
+    },
+    {
+      "key": "hotelId",
+      "value": "",
+      "type": "string"
+    }
+  ],
+  "item": [
+    {
+      "name": "1. Authentication & Accounts",
+      "item": [
+        {
+          "name": "1.1 Login",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"email\": \"admin@hotel.com\",\n  \"password\": \"SecurePassword123!\"\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/auth/login/",
+              "host": ["{{baseUrl}}"],
+              "path": ["auth", "login", ""]
+            }
+          }
+        },
+        {
+          "name": "1.2 Logout",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{accessToken}}"
+              },
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"refresh\": \"{{refreshToken}}\"\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/auth/logout/",
+              "host": ["{{baseUrl}}"],
+              "path": ["auth", "logout", ""]
+            }
+          }
+        },
+        {
+          "name": "1.3 Refresh Token",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"refresh\": \"{{refreshToken}}\"\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/auth/token/refresh/",
+              "host": ["{{baseUrl}}"],
+              "path": ["auth", "token", "refresh", ""]
+            }
+          }
+        },
+        {
+          "name": "1.4 Get Profile (Me)",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{accessToken}}"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/auth/me/",
+              "host": ["{{baseUrl}}"],
+              "path": ["auth", "me", ""]
+            }
+          }
+        },
+        {
+          "name": "1.5 Update Profile (Me)",
+          "request": {
+            "method": "PATCH",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{accessToken}}"
+              },
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"first_name\": \"Ameer\",\n  \"last_name\": \"Waeel Updated\",\n  \"phone\": \"+201122334455\",\n  \"preferred_language\": \"ar\"\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/auth/me/",
+              "host": ["{{baseUrl}}"],
+              "path": ["auth", "me", ""]
+            }
+          }
+        },
+        {
+          "name": "1.6 Change Password",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{accessToken}}"
+              },
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"old_password\": \"OldPassword123!\",\n  \"new_password\": \"NewStrongPassword456!\",\n  \"confirm_password\": \"NewStrongPassword456!\"\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/auth/change-password/",
+              "host": ["{{baseUrl}}"],
+              "path": ["auth", "change-password", ""]
+            }
+          }
+        },
+        {
+          "name": "1.7 Password Reset Request",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"email\": \"admin@hotel.com\"\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/auth/reset-password/",
+              "host": ["{{baseUrl}}"],
+              "path": ["auth", "reset-password", ""]
+            }
+          }
+        },
+        {
+          "name": "1.8 Select Active Hotel",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{accessToken}}"
+              },
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"hotel_id\": \"{{hotelId}}\"\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/auth/select-hotel/",
+              "host": ["{{baseUrl}}"],
+              "path": ["auth", "select-hotel", ""]
+            }
+          }
+        },
+        {
+          "name": "1.9 My Hotels & Roles",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{accessToken}}"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/auth/my-hotels/",
+              "host": ["{{baseUrl}}"],
+              "path": ["auth", "my-hotels", ""]
+            }
+          }
+        }
+      ]
+    },
+    {
+      "name": "2. Tenants & Hotels (CRUD)",
+      "item": [
+        {
+          "name": "2.1 List Hotels (Paginated)",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{accessToken}}"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/tenants/hotels/?page=1&page_size=20",
+              "host": ["{{baseUrl}}"],
+              "path": ["tenants", "hotels", ""],
+              "query": [
+                {
+                  "key": "page",
+                  "value": "1"
+                },
+                {
+                  "key": "page_size",
+                  "value": "20"
+                }
+              ]
+            }
+          }
+        },
+        {
+          "name": "2.2 Create Hotel",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{accessToken}}"
+              },
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"name\": \"Grand Nile Hotel\",\n  \"slug\": \"grand-nile-hotel\",\n  \"subdomain\": \"grand-nile\",\n  \"email\": \"contact@grandnile.com\",\n  \"phone\": \"+20227988000\",\n  \"address\": \"Corniche El Nile, Garden City\",\n  \"city\": \"Cairo\",\n  \"country\": \"EG\",\n  \"timezone\": \"Africa/Cairo\",\n  \"default_currency\": \"USD\",\n  \"default_language\": \"en\"\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/tenants/hotels/",
+              "host": ["{{baseUrl}}"],
+              "path": ["tenants", "hotels", ""]
+            }
+          }
+        },
+        {
+          "name": "2.3 Retrieve Hotel Detail",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{accessToken}}"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/tenants/hotels/{{hotelId}}/",
+              "host": ["{{baseUrl}}"],
+              "path": ["tenants", "hotels", "{{hotelId}}", ""]
+            }
+          }
+        },
+        {
+          "name": "2.4 Update Hotel (PUT)",
+          "request": {
+            "method": "PUT",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{accessToken}}"
+              },
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"name\": \"Grand Nile Luxury Resort\",\n  \"slug\": \"grand-nile-luxury-resort\",\n  \"subdomain\": \"grand-nile\",\n  \"email\": \"gm@grandnile.com\",\n  \"phone\": \"+20227988000\",\n  \"address\": \"Corniche El Nile, Garden City\",\n  \"city\": \"Cairo\",\n  \"country\": \"EG\",\n  \"timezone\": \"Africa/Cairo\",\n  \"default_currency\": \"USD\",\n  \"default_language\": \"en\",\n  \"status\": \"active\",\n  \"is_active\": true\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/tenants/hotels/{{hotelId}}/",
+              "host": ["{{baseUrl}}"],
+              "path": ["tenants", "hotels", "{{hotelId}}", ""]
+            }
+          }
+        },
+        {
+          "name": "2.5 Partial Update Hotel (PATCH)",
+          "request": {
+            "method": "PATCH",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{accessToken}}"
+              },
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"phone\": \"+201011112222\",\n  \"status\": \"active\"\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/tenants/hotels/{{hotelId}}/",
+              "host": ["{{baseUrl}}"],
+              "path": ["tenants", "hotels", "{{hotelId}}", ""]
+            }
+          }
+        },
+        {
+          "name": "2.6 Delete Hotel",
+          "request": {
+            "method": "DELETE",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{accessToken}}"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/tenants/hotels/{{hotelId}}/",
+              "host": ["{{baseUrl}}"],
+              "path": ["tenants", "hotels", "{{hotelId}}", ""]
+            }
+          }
+        }
+      ]
+    },
+    {
+      "name": "3. System & Documentation",
+      "item": [
+        {
+          "name": "3.1 OpenAPI 3.0 Schema",
+          "request": {
+            "method": "GET",
+            "url": {
+              "raw": "http://127.0.0.1:8000/api/schema/",
+              "host": ["http://127.0.0.1:8000"],
+              "path": ["api", "schema", ""]
+            }
+          }
+        },
+        {
+          "name": "3.2 Swagger UI",
+          "request": {
+            "method": "GET",
+            "url": {
+              "raw": "http://127.0.0.1:8000/api/docs/",
+              "host": ["http://127.0.0.1:8000"],
+              "path": ["api", "docs", ""]
+            }
+          }
+        },
+        {
+          "name": "3.3 ReDoc UI",
+          "request": {
+            "method": "GET",
+            "url": {
+              "raw": "http://127.0.0.1:8000/api/redoc/",
+              "host": ["http://127.0.0.1:8000"],
+              "path": ["api", "redoc", ""]
+            }
+          }
+        }
+      ]
+    }
+  ]
+}
