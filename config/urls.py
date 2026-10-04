@@ -38,16 +38,22 @@ api_v1_patterns = [
     path("auth/", include("accounts.urls")),
     # 🏨 Tenants & Hotel Management (Phase 2)
     path("tenants/", include("tenants.urls")),
-    # 🛏️ Rooms (Phase 4)
-    # path("rooms/", include("rooms.urls")),
-    # 👥 Customers (Phase 4)
-    # path("customers/", include("customers.urls")),
+    # 🛏️ Rooms + Languages + BookingSources (Phase 4)
+    path("rooms/", include("rooms.urls")),
+    # 👥 Customers + Employees (Phase 4)
+    path("customers/", include("customers.urls")),
     # 📅 Reservations (Phase 5)
-    # path("reservations/", include("reservations.urls")),
+    path("reservations/", include("reservations.urls")),
     # 💳 Payments (Phase 6)
-    # path("payments/", include("payments.urls")),
+    path("payments/", include("payments.urls")),
     # 💰 Finance (Phase 6)
-    # path("finance/", include("finance.urls")),
+    path("finance/", include("finance.urls")),
+    # 🧹 Housekeeping (Phase 7)
+    path("housekeeping/", include("housekeeping.urls")),
+    # 🔧 Maintenance (Phase 7)
+    path("maintenance/", include("maintenance.urls")),
+    # 📋 Complaints (Phase 7)
+    path("complaints/", include("complaints.urls")),
 ]
 
 # ---------------------------------------------------------------------------

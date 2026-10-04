@@ -186,3 +186,61 @@ def authenticate_with_hotel(api_client, user, hotel):
     # نُعيِّن hotel في request مباشرة لتجاوز TenantMiddleware في tests
     api_client.hotel = hotel
     return api_client
+
+
+# ---------------------------------------------------------------------------
+# Phase 4-7 Fixtures
+# ---------------------------------------------------------------------------
+
+@pytest.fixture
+def hotel(db):
+    """فندق رئيسي للـ Phase 4-7 tests (alias for hotel_a)."""
+    from tenants.models import Hotel, HotelSettings
+    hotel = Hotel.objects.create(
+        name="Test Hotel",
+        slug="test-hotel",
+        subdomain="test",
+        email="test@hotel.com",
+        status="active",
+        is_active=True,
+    )
+    HotelSettings.objects.get_or_create(hotel=hotel)
+    return hotel
+
+
+@pytest.fixture
+def hotel2(db):
+    """فندق ثانٍ لاختبار الـ cross-tenant isolation."""
+    from tenants.models import Hotel, HotelSettings
+    hotel = Hotel.objects.create(
+        name="Test Hotel 2",
+        slug="test-hotel-2",
+        subdomain="test2",
+        email="test2@hotel.com",
+        status="active",
+        is_active=True,
+    )
+    HotelSettings.objects.get_or_create(hotel=hotel)
+    return hotel
+
+
+@pytest.fixture
+def admin_user(db):
+    """مستخدم Admin عام (override للـ fixture الموجودة — بدون hotel dependency)."""
+    return User.objects.create_user(
+        email="admin_phase4@test.com",
+        username="admin_phase4",
+        password="AdminPass123!",
+        first_name="Admin",
+        last_name="Phase4",
+    )
+
+
+@pytest.fixture
+def admin_membership(db, hotel, admin_user):
+    """عضوية admin_user في hotel بدور Manager."""
+    from accounts.models import HotelMembership, Role
+    role, _ = Role.objects.get_or_create(hotel=hotel, name="Manager")
+    return HotelMembership.objects.create(
+        user=admin_user, hotel=hotel, role=role, status="active"
+    )

@@ -1109,3 +1109,200 @@
 | `/api/redoc/` | `GET` | HTML | واجهة **ReDoc** التوثيقية الاحترافية للقراءة والتصدير |
 | `/silk/` | `GET` | HTML / Dashboard | واجهة **Django Silk** لفحص استهلاك الذاكرة وزمن كل Request واستعلامات SQL |
 | `/__debug__/` | `GET` | Dev Toolbar | شريط فحص Django Debug Toolbar (في وضع DEBUG فقط) |
+
+---
+
+## 4. Phase 4 — Master Data: Rooms, Customers, Employees
+
+### 4.1 Languages & Hotel Languages (`/api/v1/rooms/`)
+
+| Method | Endpoint | Description | Auth Required |
+| :--- | :--- | :--- | :--- |
+| `GET` | `/api/v1/rooms/languages/` | List all active global languages | JWT |
+| `GET` | `/api/v1/rooms/hotel-languages/` | List languages configured for the active hotel | JWT |
+| `POST` | `/api/v1/rooms/hotel-languages/` | Add a language to the active hotel | JWT + `rooms.manage` |
+| `DELETE` | `/api/v1/rooms/hotel-languages/{id}/` | Remove a language from the hotel | JWT + `rooms.manage` |
+| `PATCH` | `/api/v1/rooms/hotel-languages/{id}/set-default/` | Set a language as the hotel's default | JWT + `rooms.manage` |
+
+### 4.2 Booking Sources (`/api/v1/rooms/booking-sources/`)
+
+| Method | Endpoint | Description | Auth Required |
+| :--- | :--- | :--- | :--- |
+| `GET` | `/api/v1/rooms/booking-sources/` | List all active booking sources for the hotel | JWT + `rooms.view` |
+| `POST` | `/api/v1/rooms/booking-sources/` | Create a new booking source | JWT + `rooms.manage` |
+| `GET` | `/api/v1/rooms/booking-sources/{id}/` | Retrieve a specific booking source | JWT + `rooms.view` |
+| `PUT` | `/api/v1/rooms/booking-sources/{id}/` | Full update of a booking source | JWT + `rooms.manage` |
+| `PATCH` | `/api/v1/rooms/booking-sources/{id}/` | Partial update of a booking source | JWT + `rooms.manage` |
+| `DELETE` | `/api/v1/rooms/booking-sources/{id}/` | Deactivate (soft-delete) booking source | JWT + `rooms.manage` |
+
+### 4.3 Room Types & Translations (`/api/v1/rooms/room-types/`)
+
+| Method | Endpoint | Description | Auth Required |
+| :--- | :--- | :--- | :--- |
+| `GET` | `/api/v1/rooms/room-types/` | List room types with translations for the hotel | JWT + `rooms.view` |
+| `POST` | `/api/v1/rooms/room-types/` | Create a new room type with translations | JWT + `rooms.manage` |
+| `GET` | `/api/v1/rooms/room-types/{id}/` | Retrieve a room type with all translations | JWT + `rooms.view` |
+| `PUT` | `/api/v1/rooms/room-types/{id}/` | Full update of a room type | JWT + `rooms.manage` |
+| `PATCH` | `/api/v1/rooms/room-types/{id}/` | Partial update of a room type | JWT + `rooms.manage` |
+| `DELETE` | `/api/v1/rooms/room-types/{id}/` | Delete a room type (if no active rooms) | JWT + `rooms.manage` |
+
+### 4.4 Rooms (`/api/v1/rooms/rooms/`)
+
+| Method | Endpoint | Description | Auth Required |
+| :--- | :--- | :--- | :--- |
+| `GET` | `/api/v1/rooms/rooms/` | List all rooms with current status | JWT + `rooms.view` |
+| `POST` | `/api/v1/rooms/rooms/` | Create a new room | JWT + `rooms.manage` |
+| `GET` | `/api/v1/rooms/rooms/{id}/` | Retrieve room detail | JWT + `rooms.view` |
+| `PUT` | `/api/v1/rooms/rooms/{id}/` | Full update of a room | JWT + `rooms.manage` |
+| `PATCH` | `/api/v1/rooms/rooms/{id}/` | Partial update of a room | JWT + `rooms.manage` |
+
+### 4.5 Customers (`/api/v1/customers/customers/`)
+
+| Method | Endpoint | Description | Auth Required |
+| :--- | :--- | :--- | :--- |
+| `GET` | `/api/v1/customers/customers/` | List customers for the hotel (with search) | JWT + `customers.view` |
+| `POST` | `/api/v1/customers/customers/` | Create a new customer | JWT + `customers.manage` |
+| `GET` | `/api/v1/customers/customers/{id}/` | Retrieve customer detail with stay history | JWT + `customers.view` |
+| `PUT` | `/api/v1/customers/customers/{id}/` | Full update of customer record | JWT + `customers.manage` |
+| `PATCH` | `/api/v1/customers/customers/{id}/` | Partial update of customer record | JWT + `customers.manage` |
+
+### 4.6 Employees (`/api/v1/customers/employees/`)
+
+| Method | Endpoint | Description | Auth Required |
+| :--- | :--- | :--- | :--- |
+| `GET` | `/api/v1/customers/employees/` | List employees for the hotel | JWT + `customers.view` |
+| `POST` | `/api/v1/customers/employees/` | Create a new employee record | JWT + `customers.manage` |
+| `GET` | `/api/v1/customers/employees/{id}/` | Retrieve employee detail | JWT + `customers.view` |
+| `PUT` | `/api/v1/customers/employees/{id}/` | Full update of employee record | JWT + `customers.manage` |
+| `PATCH` | `/api/v1/customers/employees/{id}/` | Partial update of employee record | JWT + `customers.manage` |
+
+---
+
+## 5. Phase 5 — Reservations + Availability Engine
+
+### 5.1 Reservations (`/api/v1/reservations/`)
+
+| Method | Endpoint | Description | Auth Required |
+| :--- | :--- | :--- | :--- |
+| `GET` | `/api/v1/reservations/` | List all reservations for the hotel (filterable by status/date) | JWT + `reservations.view` |
+| `POST` | `/api/v1/reservations/` | Create a new reservation (with room assignment) | JWT + `reservations.manage` |
+| `GET` | `/api/v1/reservations/{id}/` | Retrieve reservation detail with all rooms | JWT + `reservations.view` |
+| `PATCH` | `/api/v1/reservations/{id}/` | Update reservation details (special requests, etc.) | JWT + `reservations.manage` |
+| `POST` | `/api/v1/reservations/{id}/confirm/` | Transition reservation: PENDING → CONFIRMED | JWT + `reservations.manage` |
+| `POST` | `/api/v1/reservations/{id}/cancel/` | Transition reservation: PENDING/CONFIRMED → CANCELLED | JWT + `reservations.manage` |
+| `POST` | `/api/v1/reservations/{id}/check-in/` | Transition reservation: CONFIRMED → CHECKED_IN; sets rooms OCCUPIED | JWT + `reservations.manage` |
+| `POST` | `/api/v1/reservations/{id}/check-out/` | Transition: CHECKED_IN → CHECKED_OUT; creates cleaning tasks | JWT + `reservations.manage` |
+| `POST` | `/api/v1/reservations/{id}/no-show/` | Transition reservation: CONFIRMED → NO_SHOW | JWT + `reservations.manage` |
+| `POST` | `/api/v1/reservations/{id}/upgrade-room/` | Upgrade a room within the reservation; creates change record | JWT + `reservations.manage` |
+
+### 5.2 Availability Engine (`/api/v1/reservations/availability/`)
+
+| Method | Endpoint | Description | Auth Required |
+| :--- | :--- | :--- | :--- |
+| `GET` | `/api/v1/reservations/availability/` | Query available rooms for given check_in & check_out dates | JWT + `reservations.view` |
+
+---
+
+## 6. Phase 6 — Payments + Finance + Closings
+
+### 6.1 Payment Methods (`/api/v1/payments/methods/`)
+
+| Method | Endpoint | Description | Auth Required |
+| :--- | :--- | :--- | :--- |
+| `GET` | `/api/v1/payments/methods/` | List all active payment methods for the hotel | JWT + `payments.view` |
+| `POST` | `/api/v1/payments/methods/` | Create a new payment method | JWT + `payments.manage` |
+| `PATCH` | `/api/v1/payments/methods/{id}/` | Update a payment method | JWT + `payments.manage` |
+
+### 6.2 Payments (`/api/v1/payments/`)
+
+| Method | Endpoint | Description | Auth Required |
+| :--- | :--- | :--- | :--- |
+| `GET` | `/api/v1/payments/` | List payments with filters (date, reservation, currency) | JWT + `payments.view` |
+| `POST` | `/api/v1/payments/` | Record a new payment (auto-creates FinancialTransaction) | JWT + `payments.manage` |
+| `GET` | `/api/v1/payments/{id}/` | Retrieve payment detail | JWT + `payments.view` |
+| `DELETE` | `/api/v1/payments/{id}/` | Soft-delete a payment (preserves audit trail) | JWT + `payments.manage` |
+
+### 6.3 Finance Categories (`/api/v1/finance/categories/`)
+
+| Method | Endpoint | Description | Auth Required |
+| :--- | :--- | :--- | :--- |
+| `GET` | `/api/v1/finance/categories/` | List finance categories (INCOME/EXPENSE) | JWT + `finance.view` |
+| `POST` | `/api/v1/finance/categories/` | Create a new finance category | JWT + `finance.manage` |
+| `PATCH` | `/api/v1/finance/categories/{id}/` | Update a finance category | JWT + `finance.manage` |
+
+### 6.4 Financial Transactions (`/api/v1/finance/transactions/`)
+
+| Method | Endpoint | Description | Auth Required |
+| :--- | :--- | :--- | :--- |
+| `GET` | `/api/v1/finance/transactions/` | List financial transactions with filters | JWT + `finance.view` |
+| `POST` | `/api/v1/finance/transactions/` | Create a manual financial transaction | JWT + `finance.manage` |
+| `GET` | `/api/v1/finance/transactions/{id}/` | Retrieve transaction detail | JWT + `finance.view` |
+| `DELETE` | `/api/v1/finance/transactions/{id}/` | Soft-delete transaction (audit trail preserved) | JWT + `finance.manage` |
+
+### 6.5 Financial Summary (`/api/v1/finance/summary/`)
+
+| Method | Endpoint | Description | Auth Required |
+| :--- | :--- | :--- | :--- |
+| `GET` | `/api/v1/finance/summary/daily/` | Daily income/expense summary grouped by currency | JWT + `finance.view` |
+
+### 6.6 Daily & Monthly Closings (`/api/v1/finance/closings/`)
+
+| Method | Endpoint | Description | Auth Required |
+| :--- | :--- | :--- | :--- |
+| `GET` | `/api/v1/finance/closings/daily/` | List all daily closings for the hotel | JWT + `finance.view` |
+| `POST` | `/api/v1/finance/closings/daily/` | Close a specific day (idempotent, select_for_update) | JWT + `finance.manage` |
+| `GET` | `/api/v1/finance/closings/monthly/` | List all monthly closings | JWT + `finance.view` |
+| `POST` | `/api/v1/finance/closings/monthly/` | Close a month (requires all daily closings to be CLOSED) | JWT + `finance.manage` |
+
+### 6.7 Exchange Rates (`/api/v1/finance/exchange-rates/`)
+
+| Method | Endpoint | Description | Auth Required |
+| :--- | :--- | :--- | :--- |
+| `GET` | `/api/v1/finance/exchange-rates/` | List stored exchange rates (display only) | JWT + `finance.view` |
+| `POST` | `/api/v1/finance/exchange-rates/` | Add an exchange rate entry | JWT + `finance.manage` |
+
+### 6.8 Async Financial Export (`/api/v1/finance/export/`)
+
+| Method | Endpoint | Description | Auth Required |
+| :--- | :--- | :--- | :--- |
+| `POST` | `/api/v1/finance/export/` | Trigger async report export; returns `task_id` immediately | JWT + `finance.manage` |
+| `GET` | `/api/v1/finance/export/{task_id}/status/` | Poll Celery task status; returns download URL on completion | JWT + `finance.view` |
+
+---
+
+## 7. Phase 7 — Housekeeping + Maintenance + Complaints
+
+### 7.1 Housekeeping / Cleaning Tasks (`/api/v1/housekeeping/`)
+
+| Method | Endpoint | Description | Auth Required |
+| :--- | :--- | :--- | :--- |
+| `GET` | `/api/v1/housekeeping/cleanings/` | List all cleaning tasks (filterable by status/date/room) | JWT + `housekeeping.view` |
+| `POST` | `/api/v1/housekeeping/cleanings/` | Manually create a cleaning task | JWT + `housekeeping.manage` |
+| `GET` | `/api/v1/housekeeping/cleanings/{id}/` | Retrieve cleaning task detail | JWT + `housekeeping.view` |
+| `PATCH` | `/api/v1/housekeeping/cleanings/{id}/` | Update cleaning task notes/schedule | JWT + `housekeeping.manage` |
+| `POST` | `/api/v1/housekeeping/cleanings/{id}/assign/` | Assign a housekeeper to the cleaning task | JWT + `housekeeping.manage` |
+| `POST` | `/api/v1/housekeeping/cleanings/{id}/start/` | Transition: PENDING → IN_PROGRESS | JWT + `housekeeping.manage` |
+| `POST` | `/api/v1/housekeeping/cleanings/{id}/complete/` | Transition: IN_PROGRESS → COMPLETED | JWT + `housekeeping.manage` |
+| `POST` | `/api/v1/housekeeping/cleanings/{id}/inspect/` | Transition: COMPLETED → INSPECTED; triggers mark_available() | JWT + `housekeeping.manage` |
+
+### 7.2 Maintenance Issues (`/api/v1/maintenance/`)
+
+| Method | Endpoint | Description | Auth Required |
+| :--- | :--- | :--- | :--- |
+| `GET` | `/api/v1/maintenance/issues/` | List all maintenance issues (filterable by priority/status/room) | JWT + `maintenance.view` |
+| `POST` | `/api/v1/maintenance/issues/` | Report a new maintenance issue | JWT + `maintenance.manage` |
+| `GET` | `/api/v1/maintenance/issues/{id}/` | Retrieve maintenance issue detail | JWT + `maintenance.view` |
+| `PATCH` | `/api/v1/maintenance/issues/{id}/` | Update issue details (assign, priority, blocking flag) | JWT + `maintenance.manage` |
+| `POST` | `/api/v1/maintenance/issues/{id}/resolve/` | Transition: IN_PROGRESS → RESOLVED with resolution notes | JWT + `maintenance.manage` |
+
+### 7.3 Customer Complaints (`/api/v1/complaints/`)
+
+| Method | Endpoint | Description | Auth Required |
+| :--- | :--- | :--- | :--- |
+| `GET` | `/api/v1/complaints/` | List all complaints (filterable by status/priority) | JWT + `complaints.view` |
+| `POST` | `/api/v1/complaints/` | Create a new customer complaint | JWT + `complaints.manage` |
+| `GET` | `/api/v1/complaints/{id}/` | Retrieve complaint detail | JWT + `complaints.view` |
+| `PATCH` | `/api/v1/complaints/{id}/` | Update complaint details | JWT + `complaints.manage` |
+| `POST` | `/api/v1/complaints/{id}/assign/` | Assign complaint to a staff member | JWT + `complaints.manage` |
+| `POST` | `/api/v1/complaints/{id}/resolve/` | Resolve complaint with resolution notes | JWT + `complaints.manage` |
+
