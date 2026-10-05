@@ -1,0 +1,563 @@
+http://localhost:8000/api/v1/
+Authorization: Bearer <access_token> + X-Hotel-ID: <hotel_uuid>
+
+*************************************************************************************
+*************************************************************************************
+phase :(4) rooms/customers/employee 
+*************************************************************************************
+*************************************************************************************
+1-Languages (Global)
+http://localhost:8000/api/v1/rooms/languages/
+Authorization: Bearer <access_token>
+POST
+{
+  "code": "ar",
+  "name": "Arabic",
+  "native_name": "العربية",
+  "is_rtl": true
+}
+RESPONSE
+{
+    "code": "ar",
+    "name": "Arabic",
+    "native_name": "العربية",
+    "is_rtl": true
+}
+GET
+{
+    "success": true,
+    "count": 2,
+    "total_pages": 1,
+    "current_page": 1,
+    "page_size": 20,
+    "next": null,
+    "previous": null,
+    "results": [
+        {
+            "id": 1,
+            "code": "ar",
+            "name": "Arabic",
+            "native_name": "العربية",
+            "is_rtl": true,
+            "is_active": true
+        },
+        {
+            "id": 2,
+            "code": "en",
+            "name": "English",
+            "native_name": "english",
+            "is_rtl": false,
+            "is_active": true
+        }
+    ]
+}
+*************************************************************************************
+2- Hotel Languages
+http://localhost:8000/api/v1/rooms/hotel-languages/
+Authorization: Bearer <access_token> + X-Hotel-ID: <hotel_uuid>
+POST
+{
+  "language_code": "ar",
+  "is_default": true
+}
+RESPONSE
+{
+    "id": "e1ff977c-2325-4d0a-a8b0-40fe899e9ba3",
+    "language": 1,
+    "language_code": "ar",
+    "language_name": "Arabic",
+    "is_rtl": true,
+    "is_default": true
+}
+GET
+{
+    "success": true,
+    "count": 1,
+    "total_pages": 1,
+    "current_page": 1,
+    "page_size": 20,
+    "next": null,
+    "previous": null,
+    "results": [
+        {
+            "id": "e1ff977c-2325-4d0a-a8b0-40fe899e9ba3",
+            "language": 1,
+            "language_code": "ar",
+            "language_name": "Arabic",
+            "is_rtl": true,
+            "is_default": true
+        }
+    ]
+}
+*************************************************************************************
+3-Booking Sources
+Authorization: Bearer <access_token> + X-Hotel-ID: <hotel_uuid>
+http://localhost:8000/api/v1/rooms/booking-sources/
+POST
+{
+  "name": "Booking.com",
+  "is_online": true,
+  "commission_rate": "15.00",
+  "description": "Online booking platform"
+}
+RESPONSE
+{
+    "name": "Booking.com",
+    "description": "Online booking platform",
+    "is_online": true,
+    "commission_rate": "15.00"
+}
+GET
+{
+    "success": true,
+    "count": 1,
+    "total_pages": 1,
+    "current_page": 1,
+    "page_size": 20,
+    "next": null,
+    "previous": null,
+    "results": [
+        {
+            "id": "ebd9f74d-f160-4fdf-b1d8-2259132417b3",
+            "name": "Booking.com",
+            "description": "Online booking platform",
+            "is_online": true,
+            "commission_rate": "15.00",
+            "is_active": true,
+            "created_at": "2026-10-04T11:09:57.003778Z"
+        }
+    ]
+}
+*************************************************************************************
+4-Room Types
+http://localhost:8000/api/v1/rooms/room-types/
+Authorization: Bearer <access_token> + X-Hotel-ID: <hotel_uuid>
+POST
+{
+  "code": "DLX",
+  "base_price": "200.00",
+  "max_occupancy": 3,
+  "sort_order": 2,
+  "translations": [
+    {"language_code": "en", "name": "Deluxe Room", "description": "Spacious deluxe room"},
+    {"language_code": "ar", "name": "غرفة ديلوكس", "description": "غرفة واسعة وفاخرة"}
+  ]
+}
+RESPONSE
+{
+    "code": "DLX",
+    "base_price": "200.00",
+    "max_occupancy": 3,
+    "sort_order": 2
+}
+GET
+{
+    "success": true,
+    "count": 1,
+    "total_pages": 1,
+    "current_page": 1,
+    "page_size": 20,
+    "next": null,
+    "previous": null,
+    "results": [
+        {
+            "id": "8290eb8d-c7b3-4851-978c-8f9ba9b36375",
+            "code": "DLX",
+            "base_price": "200.00",
+            "max_occupancy": 3,
+            "amenities": [],
+            "sort_order": 2,
+            "is_active": true,
+            "translations": [
+                {
+                    "id": 3,
+                    "language": 2,
+                    "language_code": "en",
+                    "name": "Deluxe Room",
+                    "description": "Spacious deluxe room"
+                },
+                {
+                    "id": 4,
+                    "language": 1,
+                    "language_code": "ar",
+                    "name": "غرفة ديلوكس",
+                    "description": "غرفة واسعة وفاخرة"
+                }
+            ],
+            "room_count": 1,
+            "created_at": "2026-10-04T11:44:04.551187Z"
+        }
+    ]
+}
+*************************************************************************************
+5- Rooms
+Authorization: Bearer <access_token> + X-Hotel-ID: <hotel_uuid>
+http://localhost:8000/api/v1/rooms/rooms/
+POST
+{
+  "room_type": "8290eb8d-c7b3-4851-978c-8f9ba9b36375",
+  "room_number": "101",
+  "floor": 1,
+  "notes": ""
+}
+RESPONSE
+{
+    "room_type": "8290eb8d-c7b3-4851-978c-8f9ba9b36375",
+    "room_number": "101",
+    "floor": 1,
+    "notes": ""
+}
+GET
+{
+    "success": true,
+    "count": 1,
+    "total_pages": 1,
+    "current_page": 1,
+    "page_size": 20,
+    "next": null,
+    "previous": null,
+    "results": [
+        {
+            "id": "94e4c9fa-6ce7-49e2-b789-f169c9e1364b",
+            "room_number": "101",
+            "floor": 1,
+            "status": "available",
+            "room_type": "8290eb8d-c7b3-4851-978c-8f9ba9b36375",
+            "room_type_code": "DLX",
+            "room_type_price": "200.00",
+            "notes": "",
+            "is_active": true,
+            "created_at": "2026-10-04T11:48:55.598666Z"
+        }
+    ]
+}
+*************************************************************************************
+6-Customers
+Authorization: Bearer <access_token> + X-Hotel-ID: <hotel_uuid>
+http://localhost:8000/api/v1/customers/customers/
+POST
+{
+  "first_name": "Ahmed",
+  "last_name": "Hassan",
+  "phone": "+201001234567",
+  "email": "ahmed@example.com",
+  "nationality": "EG",
+  "id_type": "national_id",
+  "id_number": "12345678901234",
+  "date_of_birth": "1990-01-15",
+  "vip_status": false
+}
+RESPONSE
+{
+    "first_name": "Ahmed",
+    "last_name": "Hassan",
+    "email": "ahmed@example.com",
+    "phone": "+201001234567",
+    "nationality": "EG",
+    "id_type": "national_id",
+    "id_number": "12345678901234",
+    "date_of_birth": "1990-01-15",
+    "vip_status": false
+}
+GET
+{
+    "success": true,
+    "count": 1,
+    "total_pages": 1,
+    "current_page": 1,
+    "page_size": 20,
+    "next": null,
+    "previous": null,
+    "results": [
+        {
+            "id": "000bd85a-d95b-48f1-9c53-7907005f6897",
+            "first_name": "Ahmed",
+            "last_name": "Hassan",
+            "full_name": "Ahmed Hassan",
+            "email": "ahmed@example.com",
+            "phone": "+201001234567",
+            "nationality": "EG",
+            "id_type": "national_id",
+            "id_number": "12345678901234",
+            "date_of_birth": "1990-01-15",
+            "vip_status": false,
+            "notes": "",
+            "total_stays": 0,
+            "is_active": true,
+            "created_at": "2026-10-04T12:12:55.045156Z"
+        }
+    ]
+}
+*************************************************************************************
+7- Employees
+http://localhost:8000/api/v1/customers/employees/
+Authorization: Bearer <access_token> + X-Hotel-ID: <hotel_uuid>
+POST
+{
+  "user": "db4db6bf-f0f6-4392-89fe-471f3f5434e2",
+  "employee_id": "EMP001",
+  "position": "Front Desk Agent",
+  "department": "front_desk",
+  "hire_date": "2024-01-01"
+}
+RESPONSE
+{
+    "user": "db4db6bf-f0f6-4392-89fe-471f3f5434e2",
+    "employee_id": "EMP001",
+    "position": "Front Desk Agent",
+    "department": "front_desk",
+    "hire_date": "2024-01-01"
+}
+GET
+{
+    "success": true,
+    "count": 1,
+    "total_pages": 1,
+    "current_page": 1,
+    "page_size": 20,
+    "next": null,
+    "previous": null,
+    "results": [
+        {
+            "id": "46344682-1bc4-4d2d-8500-5f0ce3736a91",
+            "user": "db4db6bf-f0f6-4392-89fe-471f3f5434e2",
+            "user_name": "Mona Sami",
+            "user_email": "djangotest.thepost@gmail.com",
+            "employee_id": "EMP001",
+            "position": "Front Desk Agent",
+            "department": "front_desk",
+            "hire_date": "2024-01-01",
+            "notes": "",
+            "is_active": true,
+            "created_at": "2026-10-04T17:35:55.024654Z"
+        }
+    ]
+}
+*************************************************************************************
+*************************************************************************************
+phase :(5) reservations
+*************************************************************************************
+*************************************************************************************
+8-reservations_availability
+http://localhost:8000/api/v1/reservations/availability/
+http://localhost:8000/api/v1/reservations/availability/?check_in=2026-10-15&check_out=2026-10-18&room_type_id=8290eb8d-c7b3-4851-978c-8f9ba9b36375
+Authorization: Bearer <access_token> + X-Hotel-ID: <hotel_uuid>
+**Query Params:**
+- `check_in=2026-10-15` (required)
+- `check_out=2026-10-18` (required)
+- `room_type_id=uuid` (optional)
+GET
+فاضي
+RESPONSE
+{
+    "check_in": "2026-10-15",
+    "check_out": "2026-10-18",
+    "available_rooms": [
+        {
+            "id": "94e4c9fa-6ce7-49e2-b789-f169c9e1364b",
+            "room_number": "101",
+            "floor": 1,
+            "status": "available",
+            "room_type": "8290eb8d-c7b3-4851-978c-8f9ba9b36375",
+            "room_type_code": "DLX",
+            "room_type_price": "200.00",
+            "notes": "",
+            "is_active": true,
+            "created_at": "2026-10-04T11:48:55.598666Z"
+        }
+    ],
+    "count": 1
+}
+*************************************************************************************
+9-reservations
+http://localhost:8000/api/v1/reservations/
+Authorization: Bearer <access_token> + X-Hotel-ID: <hotel_uuid>
+CRUDE
+| PATCH | `/reservations/{id}/status/`| Transition status |
+| POST | `/reservations/{id}/upgrade-room/` | Upgrade/change room |
+POST
+{
+  "customer": "000bd85a-d95b-48f1-9c53-7907005f6897",
+  "booking_source": "ebd9f74d-f160-4fdf-b1d8-2259132417b3",
+  "check_in": "2026-10-15",
+  "check_out": "2026-10-18",
+  "adults": 2,
+  "children": 1,
+  "currency": "USD",
+  "special_requests": "High floor preferred",
+  "internal_notes": "VIP guest",
+  "rooms": [
+    {
+      "room_id": "94e4c9fa-6ce7-49e2-b789-f169c9e1364b",
+      "adults": 2,
+      "children": 1,
+      "notes": ""
+    }
+  ]
+}
+RESPONSE
+{
+    "id": "61177e10-be3e-46d4-8bfe-56189c3f51ec",
+    "customer": "000bd85a-d95b-48f1-9c53-7907005f6897",
+    "customer_name": "Ahmed Hassan",
+    "booking_source": "ebd9f74d-f160-4fdf-b1d8-2259132417b3",
+    "booking_source_name": "Booking.com",
+    "status": "pending",
+    "check_in": "2026-10-15",
+    "check_out": "2026-10-18",
+    "nights": 3,
+    "adults": 2,
+    "children": 1,
+    "total_price": "600.00",
+    "currency": "USD",
+    "special_requests": "High floor preferred",
+    "internal_notes": "VIP guest",
+    "confirmed_at": null,
+    "checked_in_at": null,
+    "checked_out_at": null,
+    "cancelled_at": null,
+    "cancellation_reason": "",
+    "created_by": "2b6a4eef-71f1-4ba0-a32b-6793261beba5",
+    "created_by_name": "admin admin",
+    "created_at": "2026-10-04T18:59:07.435323Z",
+    "reservation_rooms": [
+        {
+            "id": "23f6bb3f-e615-44ad-aa97-89588acc8e32",
+            "room": "94e4c9fa-6ce7-49e2-b789-f169c9e1364b",
+            "room_number": "101",
+            "room_type": "8290eb8d-c7b3-4851-978c-8f9ba9b36375",
+            "room_type_code": "DLX",
+            "check_in": "2026-10-15",
+            "check_out": "2026-10-18",
+            "nightly_price": "200.00",
+            "nights": 3,
+            "total_price": "600.00",
+            "adults": 2,
+            "children": 1,
+            "notes": ""
+        }
+    ]
+}
+GET
+{
+    "success": true,
+    "count": 1,
+    "total_pages": 1,
+    "current_page": 1,
+    "page_size": 20,
+    "next": null,
+    "previous": null,
+    "results": [
+        {
+            "id": "61177e10-be3e-46d4-8bfe-56189c3f51ec",
+            "customer": "000bd85a-d95b-48f1-9c53-7907005f6897",
+            "customer_name": "Ahmed Hassan",
+            "booking_source": "ebd9f74d-f160-4fdf-b1d8-2259132417b3",
+            "booking_source_name": "Booking.com",
+            "status": "pending",
+            "check_in": "2026-10-15",
+            "check_out": "2026-10-18",
+            "nights": 3,
+            "adults": 2,
+            "children": 1,
+            "total_price": "600.00",
+            "currency": "USD",
+            "special_requests": "High floor preferred",
+            "internal_notes": "VIP guest",
+            "confirmed_at": null,
+            "checked_in_at": null,
+            "checked_out_at": null,
+            "cancelled_at": null,
+            "cancellation_reason": "",
+            "created_by": "2b6a4eef-71f1-4ba0-a32b-6793261beba5",
+            "created_by_name": "admin admin",
+            "created_at": "2026-10-04T18:59:07.435323Z",
+            "reservation_rooms": [
+                {
+                    "id": "23f6bb3f-e615-44ad-aa97-89588acc8e32",
+                    "room": "94e4c9fa-6ce7-49e2-b789-f169c9e1364b",
+                    "room_number": "101",
+                    "room_type": "8290eb8d-c7b3-4851-978c-8f9ba9b36375",
+                    "room_type_code": "DLX",
+                    "check_in": "2026-10-15",
+                    "check_out": "2026-10-18",
+                    "nightly_price": "200.00",
+                    "nights": 3,
+                    "total_price": "600.00",
+                    "adults": 2,
+                    "children": 1,
+                    "notes": ""
+                }
+            ]
+        }
+    ]
+}
+
+http://localhost:8000/api/v1/reservations/<RESERVATION_ID>/status/
+1. لتأكيد الحجز (Pending → Confirmed):
+{
+  "action": "confirm"
+}
+2. لتسكين النزيل (Confirmed → Checked In):
+{
+  "action": "check_in"
+}
+3. لتسجيل مغادرة النزيل (Checked In → Checked Out):
+{
+  "action": "check_out"
+}
+4. لإلغاء الحجز (Cancel):
+{
+  "action": "cancel",
+  "reason": "النزيل طلب الإلغاء لظروف السفر"
+}
+
+*************************************************************************************
+10-upgrade-room
+http://localhost:8000/api/v1/reservations/{id}/upgrade-room/
+Authorization: Bearer <access_token> + X-Hotel-ID: <hotel_uuid>
+
+POST
+
+RESPONSE
+
+GET
+📊 ملخص دورة حياة الحجز في ثوانٍ:
+POST /reservations/
+⟶
+pending
+⏟
+الغرفة مقفولة
+→
+confirm
+confirmed
+⏟
+الحجز مؤكد
+→
+check_in
+checked_in
+⏟
+الغرفة OCCUPIED
+→
+check_out
+checked_out
+⏟
+الغرفة CLEANING
+→
+inspect
+AVAILABLE
+⏟
+جاهزة لنزيل جديد
+POST /reservations/⟶ 
+الغرفة مقفولة
+pending
+​
+ 
+​
+  
+
+*************************************************************************************
+*************************************************************************************
+phase :(6) 
+*************************************************************************************
+*************************************************************************************
