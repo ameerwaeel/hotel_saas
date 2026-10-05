@@ -172,6 +172,28 @@ class TestReservationCreate:
                 created_by=admin_user
             )
 
+    def test_pending_reservation_blocks_room(self, hotel, room, customer, checkin, checkout, admin_user):
+        """الحجز المعلق (Pending) يجب أن يقفل الغرفة فوراً ويمنع حجزها مجدداً."""
+        res = ReservationService.create(
+            hotel=hotel, customer=customer, check_in=checkin, check_out=checkout,
+            rooms_data=[{"room_id": str(room.id)}], created_by=admin_user
+        )
+        assert res.status == ReservationStatus.PENDING
+
+        customer2 = Customer.objects.create(
+            hotel=hotel, first_name="Other", last_name="Guest", phone="+201000000088"
+        )
+        # محاولة حجز نفس الغرفة ونفس التواريخ والحجز الأول ما زال pending
+        with pytest.raises(ValidationError) as excinfo:
+            ReservationService.create(
+                hotel=hotel, customer=customer2,
+                check_in=checkin, check_out=checkout,
+                rooms_data=[{"room_id": str(room.id)}],
+                created_by=admin_user
+            )
+        assert "not available" in str(excinfo.value)
+
+
 
 # ---------------------------------------------------------------------------
 # State Machine Tests

@@ -189,6 +189,17 @@ class TestCustomer:
         assert c.first_name == "Sara"
         assert c.hotel == hotel
 
+    def test_create_customer_with_date_of_birth(self, hotel):
+        from datetime import date
+        c = CustomerService.create(
+            hotel, "Ahmed", "Hassan", phone="+201001234567",
+            email="ahmed@example.com", nationality="EG",
+            id_type="national_id", id_number="12345678901234",
+            date_of_birth=date(1990, 1, 15), vip_status=False
+        )
+        assert c.date_of_birth == date(1990, 1, 15)
+        assert c.id_number == "12345678901234"
+
     def test_customer_search_by_phone(self, hotel, customer):
         results = list(get_customers(hotel, search=customer.phone))
         assert customer in results

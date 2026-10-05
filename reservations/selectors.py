@@ -45,6 +45,7 @@ def get_available_rooms_for_dates(hotel, check_in, check_out, room_type_id=None)
         .filter(
             hotel=hotel,
             reservation__status__in=[
+                ReservationStatus.PENDING,
                 ReservationStatus.CONFIRMED,
                 ReservationStatus.CHECKED_IN,
             ],
@@ -87,6 +88,7 @@ def is_room_available(hotel, room, check_in, check_out, exclude_reservation_id=N
         .filter(
             room=room,
             reservation__status__in=[
+                ReservationStatus.PENDING,
                 ReservationStatus.CONFIRMED,
                 ReservationStatus.CHECKED_IN,
             ],

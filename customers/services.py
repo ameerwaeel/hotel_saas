@@ -16,7 +16,8 @@ class CustomerService:
     @staticmethod
     def create(hotel, first_name: str, last_name: str, phone: str = "",
                email: str = "", nationality: str = "", id_type: str = "",
-               id_number: str = "", notes: str = "", vip_status: bool = False) -> Customer:
+               id_number: str = "", date_of_birth=None, notes: str = "",
+               vip_status: bool = False, **kwargs) -> Customer:
         """إنشاء عميل جديد للفندق."""
         customer = Customer(
             hotel=hotel,
@@ -27,6 +28,7 @@ class CustomerService:
             nationality=nationality,
             id_type=id_type,
             id_number=id_number,
+            date_of_birth=date_of_birth,
             notes=notes,
             vip_status=vip_status,
         )
